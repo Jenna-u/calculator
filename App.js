@@ -11,6 +11,8 @@ import { Platform, StyleSheet, Text, View, TouchableHighlight } from 'react-nati
 
 
 const colors = ['#414141', '#F06E6E', '#D7D4D3', '#B8E986', '#A1A197', '#E5A2A0', '#CCD2AA']
+const reg = /^\d+(\.*\d{0,2})([+*/-]\d+(\.*\d{0,2}))+$/
+const operators = ['+', '-', 'x', '/', '%']
 
 type Props = {};
 export default class App extends Component<Props> {
@@ -18,47 +20,83 @@ export default class App extends Component<Props> {
   constructor() {
     super()
     this.state = {
-      text: 0
+      operand: 0
     }
+    this.operand = 0
+    this.operator = ''
+    this.tempStr = ''
   }
 
   handleResult = () => {
-    const { text } = this.state
-    const result = eval(text)
-    console.log('result', result, text)
+    const { operand, operator, tempStr } = this.state;
+    const thirdNumer = parseFloat(tempStr)
+    let result = 0
+
+    switch (operator) {
+      case '+':
+        result = operand + thirdNumer
+        break;
+      case '-':
+        result = operand - thirdNumer
+        break;
+      case 'x':
+        result = operand * thirdNumer
+        break;
+      case '/':
+        result = operand / thirdNumer
+        break;
+      default:
+        return result
+    }
+
+    this.operand = result
+    // this.operator = ''
+    // this.tempStr = ''
+
     this.setState({
-      text: +parseFloat(result.toPrecision(12))
+      operand: result,
+      operator: '',
+      tempStr: ''
     })
   }
 
   handlePress = (val) => {
-    const { text } = this.state
-    let number = `${text}${val}`
-    if (val === '%') {
-      number = text * 0.01
-    } else if (val === 'x') {
-      number = `${text}*`
-    } else if (val === '+/-') {
-      number = `${text >= 0 ? text * -1 : text * 1}`
+    const { operand, operator, tempStr } = this.state
+    if (operators.indexOf(val) !== -1) {
+      this.operand = parseFloat(this.tempStr) // 根据最后一次计算判断取值
+      this.operator = val
+      this.tempStr = ''
+    } else if(/\d+/g.test(val)) {
+      this.tempStr += val
     }
 
+    console.log('operand', this.operand, 'operator', this.operator, 'tempStr', this.tempStr)
+
     this.setState({
-      text: number
-    })
+      operand: this.operand,
+      operator: this.operator,
+      tempStr: this.tempStr
+    },() => {console.log('state', this.state)})
   }
 
   handleClean = () => {
     this.setState({
-      text: 0,
+      operand: 0,
+      operator: '',
+      tempStr: ''
     })
+    this.operand = 0
+    this.operator = ''
+    this.tempStr = ''
   }
 
   render() {
+    const { operand, operator, tempStr } = this.state
     return (
       <View style={styles.container}>
         <View style={styles.output}>
           <Text style={[styles.countText]}>
-            {this.state.text}
+            {`${operand}`}
           </Text>
         </View>
         <View style={styles.board}>
@@ -180,10 +218,11 @@ const styles = StyleSheet.create({
     flex: 4,
     justifyContent: 'flex-end',
     height: 360,
+    fontFamily: 'HelveticaNeue'
   },
   countText: {
     fontSize: 80,
-    color: '#414141',
+    color: '#4e4e4e',
     textAlign: 'right'
   },
   board: {
@@ -211,10 +250,11 @@ const styles = StyleSheet.create({
     fontSize: 36,
     lineHeight: 50,
     textAlign: 'center',
-    color: '#D7D4D3'
+    color: '#aaa',
+    fontFamily: 'HelveticaNeue'
   },
   red: {
-    color: '#F06E6E'
+    color: '#f76c8c'
   },
   result: {
     width: 50,
@@ -227,5 +267,6 @@ const styles = StyleSheet.create({
     lineHeight: 50,
     textAlign: 'center',
     fontSize: 30,
+    fontFamily: 'HelveticaNeue'
   }
 });
