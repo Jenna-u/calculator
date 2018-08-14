@@ -12,7 +12,7 @@ import { Platform, StyleSheet, Text, View, TouchableHighlight } from 'react-nati
 
 const colors = ['#414141', '#F06E6E', '#D7D4D3', '#B8E986', '#A1A197', '#E5A2A0', '#CCD2AA']
 const reg = /^\d+(\.*\d{0,2})([+*/-]\d+(\.*\d{0,2}))+$/
-const operators = ['+', '-', 'x', '/', '%']
+const operators = ['+', '-', 'x', '/']
 
 type Props = {};
 export default class App extends Component<Props> {
@@ -20,11 +20,14 @@ export default class App extends Component<Props> {
   constructor() {
     super()
     this.state = {
-      operand: 0
+      operand: 0,
+      operator: '',
+      tempStr: 0,
     }
     this.operand = 0
     this.operator = ''
     this.tempStr = ''
+    this.nextNum = 0
   }
 
   handleResult = () => {
@@ -50,24 +53,28 @@ export default class App extends Component<Props> {
     }
 
     this.operand = result
-    // this.operator = ''
-    // this.tempStr = ''
+    this.operator = ''
+    this.tempStr = result
 
     this.setState({
-      operand: result,
-      operator: '',
-      tempStr: ''
+      operand: this.operand,
+      operator: this.operator,
+      tempStr: this.tempStr
     })
   }
 
   handlePress = (val) => {
     const { operand, operator, tempStr } = this.state
+
     if (operators.indexOf(val) !== -1) {
-      this.operand = parseFloat(this.tempStr) // 根据最后一次计算判断取值
+      this.operand = parseFloat(this.tempStr)// 根据最后一次计算判断取值
       this.operator = val
       this.tempStr = ''
-    } else if(/\d+/g.test(val)) {
-      this.tempStr += val
+    } else {
+      // 处理 '%','+/-' 情况
+      this.nextNum = val === '%' ? this.tempStr * 0.01 : `${this.tempStr}${val}`
+      this.nextNum = val === '+/-' ? `${-1 * this.tempStr}` : val
+      this.tempStr = this.nextNum
     }
 
     console.log('operand', this.operand, 'operator', this.operator, 'tempStr', this.tempStr)
@@ -96,7 +103,7 @@ export default class App extends Component<Props> {
       <View style={styles.container}>
         <View style={styles.output}>
           <Text style={[styles.countText]}>
-            {`${operand}`}
+            {`${tempStr}`}
           </Text>
         </View>
         <View style={styles.board}>
