@@ -71,12 +71,23 @@ export default class App extends Component<Props> {
       this.operator = val
       this.tempStr = ''
     } else {
-      // 处理 '%','+/-' 情况
-      this.nextNum = val === '%' ? this.tempStr * 0.01 : `${this.tempStr}${val}`
-      this.nextNum = val === '+/-' ? `${-1 * this.tempStr}` : val
+      // 处理 '%','+/-', '.' 情况
+    
+      switch (val) {
+        case '%':
+          this.nextNum = this.tempStr * 0.01
+          break;
+        case '+/-':
+          this.nextNum = -1 * parseFloat(this.tempStr)
+          break;  
+        case '.':
+          this.nextNum = this.tempStr.includes(val) ? '' : this.tempStr
+        default:
+          this.nextNum = `${this.tempStr}${val}`
+      }
+
       this.tempStr = this.nextNum
     }
-
     console.log('operand', this.operand, 'operator', this.operator, 'tempStr', this.tempStr)
 
     this.setState({
@@ -87,14 +98,15 @@ export default class App extends Component<Props> {
   }
 
   handleClean = () => {
-    this.setState({
-      operand: 0,
-      operator: '',
-      tempStr: ''
-    })
     this.operand = 0
     this.operator = ''
     this.tempStr = ''
+
+    this.setState({
+      operand: this.operand,
+      operator: this.operator,
+      tempStr: this.tempStr
+    })
   }
 
   render() {
