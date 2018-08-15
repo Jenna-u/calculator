@@ -6,12 +6,12 @@
  * @flow
  */
 
-import React, { Component } from 'react';
-import { Platform, StyleSheet, Text, View, TouchableHighlight } from 'react-native';
-
+import React, { Component } from 'react'
+import { Platform, StyleSheet, Text, View, TouchableHighlight } from 'react-native'
+import NP from 'number-precision'
 
 const colors = ['#414141', '#F06E6E', '#D7D4D3', '#B8E986', '#A1A197', '#E5A2A0', '#CCD2AA']
-const reg = /^\d+(\.*\d{0,2})([+*/-]\d+(\.*\d{0,2}))+$/
+
 const operators = ['+', '-', 'x', '/']
 
 type Props = {};
@@ -24,33 +24,40 @@ export default class App extends Component<Props> {
       operator: '',
       tempStr: 0,
     }
+
     this.operand = 0
     this.operator = ''
     this.tempStr = ''
     this.nextNum = 0
   }
 
-  handleResult = () => {
-    const { operand, operator, tempStr } = this.state;
+  calculate = () => {
+    const { operand, operator, tempStr } = this.state
     const thirdNumer = parseFloat(tempStr)
     let result = 0
 
     switch (operator) {
       case '+':
-        result = operand + thirdNumer
-        break;
+        result = NP.plus(operand, thirdNumer)
+        break
       case '-':
-        result = operand - thirdNumer
-        break;
+        result = NP.minus(operand, thirdNumer)
+        break
       case 'x':
-        result = operand * thirdNumer
-        break;
+        result = NP.times(operand, thirdNumer)
+        break
       case '/':
-        result = operand / thirdNumer
-        break;
+        result = NP.divide(operand, thirdNumer)
+        break
       default:
         return result
     }
+
+    return result
+  }
+
+  handleResult = () => {
+    let result = this.calculate()
 
     this.operand = result
     this.operator = ''
@@ -64,15 +71,12 @@ export default class App extends Component<Props> {
   }
 
   handlePress = (val) => {
-    const { operand, operator, tempStr } = this.state
-
     if (operators.indexOf(val) !== -1) {
-      this.operand = parseFloat(this.tempStr)// 根据最后一次计算判断取值
+      this.operand = this.operand && this.tempStr ? this.calculate() : parseFloat(this.tempStr)
       this.operator = val
       this.tempStr = ''
     } else {
       // 处理 '%','+/-', '.' 情况
-    
       switch (val) {
         case '%':
           this.nextNum = this.tempStr * 0.01
@@ -283,7 +287,7 @@ const styles = StyleSheet.create({
   },
   white: {
     color: '#fff',
-    lineHeight: 50,
+    lineHeight: 40,
     textAlign: 'center',
     fontSize: 30,
     fontFamily: 'HelveticaNeue'
