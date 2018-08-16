@@ -6,9 +6,10 @@ let records = []
 
 module.exports = async (req, res) => {
   if (req.url === '/add') {
+    console.log('request--------', req)
     const record = await json(req)
     records[id++] = record
-    return id
+    return { id }
   } else {
     return records
   }

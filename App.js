@@ -7,7 +7,11 @@
  */
 
 import React, { Component } from 'react'
-import { Platform, StyleSheet, Text, View, TouchableHighlight, Picker } from 'react-native'
+import { 
+  Platform, StyleSheet, Text, View, 
+  TouchableHighlight, Picker, Modal,
+  Button
+ } from 'react-native'
 import NP from 'number-precision'
 
 const colors = ['#414141', '#F06E6E', '#D7D4D3', '#B8E986', '#A1A197', '#E5A2A0', '#CCD2AA']
@@ -22,15 +26,22 @@ export default class App extends Component<Props> {
       operand: 0,
       operator: '',
       tempStr: 0,
+      histroy: [],
+      modalVisible: false,
     }
+    this.histroy = []
   }
+
+  componentDidMount() {
+   
+  } 
 
    /**
    * 计算结果
-   * @param {operand} number 操作数
-   * @param {operator} string 运算符
-   * @param {operant} string 被运算
-   * @return {result} 最终计算结果
+   * @param { operand } number 操作数
+   * @param { operator } string 运算符
+   * @param { operant } string 被运算
+   * @return { result } 最终计算结果
   */
   calculate = (operand, operator, operant) => {
     let result = 0
@@ -59,8 +70,10 @@ export default class App extends Component<Props> {
    * 根据计算得出最后计算结果
   */
   handleResult = () => {
-    const { operand, operator, tempStr } = this.state
+    const { operand, operator, tempStr, histroy } = this.state
     const result = this.calculate(operand, operator, parseFloat(tempStr))
+    this.histroy.push(`${operand} ${operator} ${tempStr} = ${result}`)
+    this.handleSubmit(this.histroy)
 
     this.setState({
       operand: result,
@@ -71,7 +84,7 @@ export default class App extends Component<Props> {
 
   /**
    * 处理输入的数字或运算符
-   * @param {string} val 数字或运算符
+   * @param { val } string 数字或运算符
   */
   handlePress = (val) => {
     const { operand, operator, tempStr } = this.state
@@ -121,8 +134,26 @@ export default class App extends Component<Props> {
     })
   }
 
+  handleSubmit = (data) => {
+    console.log('data', data)
+    const url = 'http://localhost:3000/add'
+    fetch(`${url}`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: new Headers({
+        'Content-Type': 'application/json'
+      })
+    }).then(res => console.log('res', res))
+  }
+
+  handleVisible = () => {
+    this.setState({
+      modalVisible: !this.state.modalVisible
+    })
+  }
+
   render() {
-    const { operand, operator, tempStr } = this.state
+    const { tempStr, modalVisible } = this.state
     return (
       <View style={styles.container}>
         <View style={styles.output}>
@@ -234,15 +265,42 @@ export default class App extends Component<Props> {
             <Text style={styles.white}>=</Text>
           </TouchableHighlight>
         </View>
-        <View style={styles.changeColor}></View>
-        {/* <Picker
-          style={styles.picker}
+        <TouchableHighlight
+          style={styles.changeColor}
+          onPress={() => this.handleVisible()}
         >
-          <Picker.Item label="基本" value="default" />
-          <Picker.Item label="红色" value="red" />
-          <Picker.Item label="黄色" value="yellow" />
-          <Picker.Item label="绿色" value="green" />
-        </Picker> */}
+          <Text style={{ textAlign: 'center' }}>...</Text>
+        </TouchableHighlight>
+        
+        <Modal
+          visible={modalVisible}
+          animationType='slide'
+          transparent={true}
+          style={styles.modal}
+        >
+          <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(255,255,255, .9)' }}>
+          <View style={styles.btns}>
+            <Button
+              title="Cancel"
+              onPress={() => this.handleVisible()}
+            />
+            <Button
+              title="Ok"
+              onPress={() => this.handleVisible()}
+            />
+          </View>
+          <Picker
+            style={styles.picker}
+            selectedValue={this.state.color}
+            onValueChange={itemValue => this.setState({color: itemValue})}
+          >
+            <Picker.Item label="基本" value="default" />
+            <Picker.Item label="红色" value="red" />
+            <Picker.Item label="黄色" value="yellow" />
+            <Picker.Item label="绿色" value="green" />
+          </Picker>
+          </View>
+        </Modal>
       </View>
     );
   }
@@ -252,7 +310,7 @@ const styles = StyleSheet.create({
   container: {
     margin: 20,
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: 'transparent',
   },
   output: {
     flex: 4,
@@ -315,10 +373,27 @@ const styles = StyleSheet.create({
     top: '4%',
     width: 30,
     height: 30,
-    backgroundColor: '#F06E6E',
+    borderTopWidth: 1,
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+    borderLeftWidth: 1,
+    borderTopColor: '#F06E6E',
+    borderRightColor: '#F06E6E',
+    borderBottomColor: '#F06E6E', 
+    borderLeftColor: '#F06E6E',
     borderRadius: 100,
   },
+  modal: {
+    flex: 5,
+    height: '50%'
+  },
+  btns: {
+    height: 30,
+    backgroundColor: '#ccc',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
   picker: {
-    backgroundColor: '#414141',
+    width: '100%'
   }
 });
