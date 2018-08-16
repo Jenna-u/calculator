@@ -7,11 +7,10 @@
  */
 
 import React, { Component } from 'react'
-import { Platform, StyleSheet, Text, View, TouchableHighlight } from 'react-native'
+import { Platform, StyleSheet, Text, View, TouchableHighlight, Picker } from 'react-native'
 import NP from 'number-precision'
 
 const colors = ['#414141', '#F06E6E', '#D7D4D3', '#B8E986', '#A1A197', '#E5A2A0', '#CCD2AA']
-
 const operators = ['+', '-', 'x', '/']
 
 type Props = {};
@@ -24,30 +23,30 @@ export default class App extends Component<Props> {
       operator: '',
       tempStr: 0,
     }
-
-    this.operand = 0
-    this.operator = ''
-    this.tempStr = ''
-    this.nextNum = 0
   }
 
-  calculate = () => {
-    const { operand, operator, tempStr } = this.state
-    const thirdNumer = parseFloat(tempStr)
+   /**
+   * 计算结果
+   * @param {operand} number 操作数
+   * @param {operator} string 运算符
+   * @param {operant} string 被运算
+   * @return {result} 最终计算结果
+  */
+  calculate = (operand, operator, operant) => {
     let result = 0
 
     switch (operator) {
       case '+':
-        result = NP.plus(operand, thirdNumer)
+        result = NP.plus(operand, operant)
         break
       case '-':
-        result = NP.minus(operand, thirdNumer)
+        result = NP.minus(operand, operant)
         break
       case 'x':
-        result = NP.times(operand, thirdNumer)
+        result = NP.times(operand, operant)
         break
       case '/':
-        result = NP.divide(operand, thirdNumer)
+        result = NP.divide(operand, operant)
         break
       default:
         return result
@@ -56,60 +55,69 @@ export default class App extends Component<Props> {
     return result
   }
 
+   /**
+   * 根据计算得出最后计算结果
+  */
   handleResult = () => {
-    let result = this.calculate()
-
-    this.operand = result
-    this.operator = ''
-    this.tempStr = result
+    const { operand, operator, tempStr } = this.state
+    const result = this.calculate(operand, operator, parseFloat(tempStr))
 
     this.setState({
-      operand: this.operand,
-      operator: this.operator,
-      tempStr: this.tempStr
+      operand: result,
+      operator: '',
+      tempStr: result.toString()
     })
   }
 
+  /**
+   * 处理输入的数字或运算符
+   * @param {string} val 数字或运算符
+  */
   handlePress = (val) => {
+    const { operand, operator, tempStr } = this.state
     if (operators.indexOf(val) !== -1) {
-      this.operand = this.operand && this.tempStr ? this.calculate() : parseFloat(this.tempStr)
-      this.operator = val
-      this.tempStr = ''
+      if (operator && tempStr !== '') {
+        this.setState({
+          operand: this.calculate(operand, operator, parseFloat(tempStr)),
+          operator: val,
+          tempStr: ''
+        })
+      } else {
+        this.setState({
+          operand: tempStr ? parseFloat(tempStr) : operand,
+          operator: val,
+          tempStr: ''
+        })
+      }
     } else {
-      // 处理 '%','+/-', '.' 情况
+      // 处理 '%','+/-', '.'情况
+      let num
       switch (val) {
         case '%':
-          this.nextNum = this.tempStr * 0.01
-          break;
+          num = parseFloat(tempStr) * 0.01
+          this.setState({ tempStr: num.toString() })
+          break
         case '+/-':
-          this.nextNum = -1 * parseFloat(this.tempStr)
-          break;  
+          num = -1 * parseFloat(tempStr)
+          break 
         case '.':
-          this.nextNum = this.tempStr.includes(val) ? '' : this.tempStr
+          num = tempStr.indexOf(val) >= 0 ? tempStr : `${tempStr}${val}`
+          break;
         default:
-          this.nextNum = `${this.tempStr}${val}`
+          num = tempStr === '0' ? `${val}` : `${tempStr}${val}`.replace(/^0/g, '')
       }
-
-      this.tempStr = this.nextNum
+      this.setState({ tempStr: num.toString() })
     }
-    console.log('operand', this.operand, 'operator', this.operator, 'tempStr', this.tempStr)
-
-    this.setState({
-      operand: this.operand,
-      operator: this.operator,
-      tempStr: this.tempStr
-    },() => {console.log('state', this.state)})
   }
 
+  /**
+   * 清除结果
+   */
   handleClean = () => {
-    this.operand = 0
-    this.operator = ''
-    this.tempStr = ''
-
     this.setState({
-      operand: this.operand,
-      operator: this.operator,
-      tempStr: this.tempStr
+      operand: 0,
+      operator: '',
+      tempStr: ''
     })
   }
 
@@ -119,7 +127,7 @@ export default class App extends Component<Props> {
       <View style={styles.container}>
         <View style={styles.output}>
           <Text style={[styles.countText]}>
-            {`${tempStr}`}
+            {tempStr}
           </Text>
         </View>
         <View style={styles.board}>
@@ -226,6 +234,15 @@ export default class App extends Component<Props> {
             <Text style={styles.white}>=</Text>
           </TouchableHighlight>
         </View>
+        <View style={styles.changeColor}></View>
+        {/* <Picker
+          style={styles.picker}
+        >
+          <Picker.Item label="基本" value="default" />
+          <Picker.Item label="红色" value="red" />
+          <Picker.Item label="黄色" value="yellow" />
+          <Picker.Item label="绿色" value="green" />
+        </Picker> */}
       </View>
     );
   }
@@ -291,5 +308,17 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 30,
     fontFamily: 'HelveticaNeue'
+  },
+  changeColor: {
+    position: 'absolute',
+    left: '4%',
+    top: '4%',
+    width: 30,
+    height: 30,
+    backgroundColor: '#F06E6E',
+    borderRadius: 100,
+  },
+  picker: {
+    backgroundColor: '#414141',
   }
 });

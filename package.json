@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "start": "node node_modules/react-native/local-cli/cli.js start",
-    "test": "jest"
+    "test": "jest",
+    "server": "micro"
   },
   "dependencies": {
+    "micro": "^9.3.3",
     "number-precision": "^1.2.0",
     "react": "16.4.1",
     "react-native": "0.56.0"
