@@ -29,11 +29,19 @@ export default class App extends Component<Props> {
       histroy: [],
       modalVisible: false,
     }
-    this.histroy = []
   }
 
   componentDidMount() {
-   
+    fetch('http://localhost:3000', {
+      method: 'GET',
+    }).then(res => res.json())
+    .then(response => {
+      if (response.length > 0) {
+        this.setState({
+          pickerList: response
+        })
+      }
+    })
   } 
 
    /**
@@ -72,8 +80,8 @@ export default class App extends Component<Props> {
   handleResult = () => {
     const { operand, operator, tempStr, histroy } = this.state
     const result = this.calculate(operand, operator, parseFloat(tempStr))
-    this.histroy.push(`${operand} ${operator} ${tempStr} = ${result}`)
-    this.handleSubmit(this.histroy)
+    const submitData = `${operand} ${operator} ${tempStr} = ${result}`
+    this.handleSubmit(submitData)
 
     this.setState({
       operand: result,
@@ -153,7 +161,8 @@ export default class App extends Component<Props> {
   }
 
   render() {
-    const { tempStr, modalVisible } = this.state
+    const { tempStr, modalVisible, pickerList } = this.state
+    console.log('sss', this.state.pickerList)
     return (
       <View style={styles.container}>
         <View style={styles.output}>
@@ -291,13 +300,12 @@ export default class App extends Component<Props> {
           </View>
           <Picker
             style={styles.picker}
-            selectedValue={this.state.color}
-            onValueChange={itemValue => this.setState({color: itemValue})}
+            selectedValue={this.state.tempStr}
+            onValueChange={itemValue => this.setState({tempStr: itemValue})}
           >
-            <Picker.Item label="基本" value="default" />
-            <Picker.Item label="红色" value="red" />
-            <Picker.Item label="黄色" value="yellow" />
-            <Picker.Item label="绿色" value="green" />
+            {pickerList && pickerList.map((item, index) => (
+              <Picker.Item key={index} label={item} value={item} />
+            ))}
           </Picker>
           </View>
         </Modal>
