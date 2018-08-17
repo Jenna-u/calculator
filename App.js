@@ -26,12 +26,16 @@ export default class App extends Component<Props> {
       operand: 0,
       operator: '',
       tempStr: 0,
-      histroy: [],
       modalVisible: false,
+      pickerList: []
     }
   }
 
   componentDidMount() {
+    this.fetchHistroyRecord()
+  } 
+
+  fetchHistroyRecord = () => {
     fetch('http://localhost:3000', {
       method: 'GET',
     }).then(res => res.json())
@@ -42,7 +46,7 @@ export default class App extends Component<Props> {
         })
       }
     })
-  } 
+  }
 
    /**
    * 计算结果
@@ -96,7 +100,9 @@ export default class App extends Component<Props> {
   */
   handlePress = (val) => {
     const { operand, operator, tempStr } = this.state
+    // 判断是否是计算符号
     if (operators.indexOf(val) !== -1) {
+      // 是否为连续计算
       if (operator && tempStr !== '') {
         this.setState({
           operand: this.calculate(operand, operator, parseFloat(tempStr)),
@@ -138,12 +144,11 @@ export default class App extends Component<Props> {
     this.setState({
       operand: 0,
       operator: '',
-      tempStr: ''
+      tempStr: 0
     })
   }
 
   handleSubmit = (data) => {
-    console.log('data', data)
     const url = 'http://localhost:3000/add'
     fetch(`${url}`, {
       method: 'POST',
@@ -157,16 +162,15 @@ export default class App extends Component<Props> {
   handleVisible = () => {
     this.setState({
       modalVisible: !this.state.modalVisible
-    })
+    }, () => this.fetchHistroyRecord()) 
   }
 
   render() {
     const { tempStr, modalVisible, pickerList } = this.state
-    console.log('sss', this.state.pickerList)
     return (
       <View style={styles.container}>
         <View style={styles.output}>
-          <Text style={[styles.countText]}>
+          <Text style={styles.countText}>
             {tempStr}
           </Text>
         </View>
@@ -278,9 +282,8 @@ export default class App extends Component<Props> {
           style={styles.changeColor}
           onPress={() => this.handleVisible()}
         >
-          <Text style={{ textAlign: 'center' }}>...</Text>
+          <Text style={{ textAlign: 'center', color: '#aaa', fontSize: 12 }}>历史记录</Text>
         </TouchableHighlight>
-        
         <Modal
           visible={modalVisible}
           animationType='slide'
@@ -327,9 +330,13 @@ const styles = StyleSheet.create({
     fontFamily: 'HelveticaNeue'
   },
   countText: {
-    fontSize: 80,
+    fontSize: 50,
     color: '#4e4e4e',
     textAlign: 'right'
+  },
+  histroyText: {
+    fontSize: 40,
+    fontFamily: 'PingFangSC-Medium'
   },
   board: {
     flex: 6,
@@ -344,7 +351,6 @@ const styles = StyleSheet.create({
     marginTop: 30,
     width: '25%',
     height: 50
-
   },
   operator: {
     fontSize: 36,
@@ -377,26 +383,16 @@ const styles = StyleSheet.create({
   },
   changeColor: {
     position: 'absolute',
-    left: '4%',
-    top: '4%',
-    width: 30,
-    height: 30,
-    borderTopWidth: 1,
-    borderRightWidth: 1,
-    borderBottomWidth: 1,
-    borderLeftWidth: 1,
-    borderTopColor: '#F06E6E',
-    borderRightColor: '#F06E6E',
-    borderBottomColor: '#F06E6E', 
-    borderLeftColor: '#F06E6E',
-    borderRadius: 100,
+    left: '2%',
+    top: '2%',
   },
   modal: {
     flex: 5,
     height: '50%'
   },
   btns: {
-    height: 30,
+    height: 36,
+    alignItems: 'center',
     backgroundColor: '#ccc',
     flexDirection: 'row',
     justifyContent: 'space-around',
