@@ -6,12 +6,12 @@ React Native 安装
 ```bash
 brew install node
 brew install watchman
-npm install -g yarn react-native-cli
+npm install -g react-native-cli
 ```
 project build
 ```bash
 cd calculator
 npm install
-react-native start
+react-native run-ios
 npm run server
 ```
